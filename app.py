@@ -5,7 +5,10 @@ from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Commodity Price Prediction", layout="centered")
+st.set_page_config(
+    page_title="Commodity Price Prediction",
+    layout="centered"
+)
 
 # ---------------- BACKGROUND IMAGE FUNCTION ----------------
 def set_bg_image(image_path):
@@ -16,7 +19,9 @@ def set_bg_image(image_path):
         f"""
         <style>
         .stApp {{
-            background-image: url("data:image/jpg;base64,{encoded}");
+            background:
+                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+                url("data:image/jpg;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -50,23 +55,54 @@ commodity_map = {
     "Platinum": ("Platinum_INR_per_10g", "₹ per 10 grams", "images/platinum.jpg")
 }
 
-# ---------------- UI CARD ----------------
+# ---------------- UI STYLES ----------------
 st.markdown(
     """
     <style>
     .card {
-        background: rgba(255,255,255,0.92);
-        padding: 30px;
-        border-radius: 16px;
-        max-width: 600px;
+        background: #ffffff;
+        padding: 35px;
+        border-radius: 18px;
+        max-width: 650px;
         margin: auto;
-        box-shadow: 0px 10px 25px rgba(0,0,0,0.35);
+        box-shadow: 0px 15px 35px rgba(0,0,0,0.35);
+        color: #111111;
+    }
+
+    h2, h3, label, p {
+        color: #111111 !important;
+        font-weight: 600;
+    }
+
+    .stButton > button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 10px;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
+# ---------------- BANNER (FIXES EMPTY BOX ISSUE) ----------------
+st.markdown(
+    """
+    <div style="
+        background: rgba(255,255,255,0.95);
+        padding: 14px 22px;
+        border-radius: 14px;
+        text-align: center;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 18px;">
+        🇮🇳 India-Based Commodity Price Prediction using Machine Learning
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- UI CARD START ----------------
 st.markdown('<div class="card">', unsafe_allow_html=True)
 
 st.markdown("## 📈 Commodity Price Prediction System")
@@ -110,14 +146,17 @@ if st.button("🔮 Predict Price"):
         st.write(f"**Trend:** {trend}")
 
         st.subheader("📊 Price Trend")
+
         hist = df.groupby("Year")[column].mean().reset_index()
         hist.loc[len(hist)] = [year, predicted_price]
 
-        plt.figure()
-        plt.plot(hist["Year"], hist[column])
+        plt.figure(figsize=(7,4))
+        plt.plot(hist["Year"], hist[column], marker="o")
         plt.xlabel("Year")
         plt.ylabel(unit)
         plt.title(f"{commodity} Price Trend")
+        plt.grid(True)
         st.pyplot(plt)
 
+# ---------------- UI CARD END ----------------
 st.markdown('</div>', unsafe_allow_html=True)
