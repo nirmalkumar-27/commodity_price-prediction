@@ -7,8 +7,21 @@ import matplotlib.pyplot as plt
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Commodity Price Prediction",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="collapsed"
+)
+
+# ---------------- REMOVE STREAMLIT DEFAULT PADDING ----------------
+st.markdown(
+    """
+    <style>
+    .block-container {
+        padding-top: 0rem;
+        padding-bottom: 0rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
 )
 
 # ---------------- BACKGROUND IMAGE FUNCTION ----------------
@@ -30,7 +43,7 @@ def set_bg_image(image_path):
         unsafe_allow_html=True
     )
 
-# ---------------- DEFAULT BACKGROUND (BEFORE SELECTION) ----------------
+# ---------------- DEFAULT BACKGROUND ----------------
 st.markdown(
     """
     <style>
@@ -54,89 +67,93 @@ commodity_map = {
     "Platinum": ("Platinum_INR_per_10g", "₹ per 10 grams", "images/platinum.jpg")
 }
 
-# ---------------- CARD STYLE (MAIN FIX) ----------------
+# ---------------- CARD STYLE ----------------
 st.markdown(
     """
     <style>
-    .main-card {
+    .center-card {
         background: white;
-        padding: 35px;
-        border-radius: 18px;
-        max-width: 620px;
-        margin: 60px auto;
-        box-shadow: 0px 15px 35px rgba(0,0,0,0.35);
+        padding: 40px;
+        border-radius: 20px;
+        width: 520px;
+        margin: 120px auto;
+        box-shadow: 0px 20px 45px rgba(0,0,0,0.45);
     }
 
     .title {
         text-align: center;
-        font-size: 30px;
+        font-size: 28px;
         font-weight: 700;
-        margin-bottom: 5px;
+        margin-bottom: 8px;
     }
 
     .subtitle {
         text-align: center;
+        font-size: 14px;
         color: #666;
-        margin-bottom: 25px;
+        margin-bottom: 30px;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---------------- UI START ----------------
-st.markdown('<div class="main-card">', unsafe_allow_html=True)
+# ---------------- CENTER CONTAINER ----------------
+with st.container():
+    st.markdown('<div class="center-card">', unsafe_allow_html=True)
 
-st.markdown('<div class="title">📈 Commodity Price Prediction System</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">India-based ML prediction using historical commodity prices</div>', unsafe_allow_html=True)
+    st.markdown('<div class="title">📈 Commodity Price Prediction System</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="subtitle">India-based ML prediction using historical commodity prices</div>',
+        unsafe_allow_html=True
+    )
 
-commodity = st.selectbox(
-    "Select Commodity",
-    ["-- Select Commodity --", "Gold", "Silver", "Platinum"]
-)
+    commodity = st.selectbox(
+        "Select Commodity",
+        ["-- Select Commodity --", "Gold", "Silver", "Platinum"]
+    )
 
-year = st.number_input(
-    "Enter Year to Predict",
-    min_value=2026,
-    max_value=2035,
-    step=1
-)
+    year = st.number_input(
+        "Enter Year to Predict",
+        min_value=2026,
+        max_value=2035,
+        step=1
+    )
 
-# ---------------- CHANGE BACKGROUND AFTER SELECTION ----------------
-if commodity in commodity_map:
-    set_bg_image(commodity_map[commodity][2])
+    # Change background AFTER selection
+    if commodity in commodity_map:
+        set_bg_image(commodity_map[commodity][2])
 
-# ---------------- PREDICTION ----------------
-if st.button("🔮 Predict Price", use_container_width=True):
-    if commodity not in commodity_map:
-        st.warning("Please select a commodity")
-    else:
-        column, unit, _ = commodity_map[commodity]
+    if st.button("🔮 Predict Price", use_container_width=True):
+        if commodity not in commodity_map:
+            st.warning("Please select a commodity")
+        else:
+            column, unit, _ = commodity_map[commodity]
 
-        X = df[["Year"]]
-        y = df[column]
+            X = df[["Year"]]
+            y = df[column]
 
-        model = LinearRegression()
-        model.fit(X, y)
+            model = LinearRegression()
+            model.fit(X, y)
 
-        predicted_price = model.predict([[year]])[0]
-        last_price = df[df["Year"] == df["Year"].max()][column].mean()
-        trend = "Increase 📈" if predicted_price > last_price else "Decrease 📉"
+            predicted_price = model.predict([[year]])[0]
+            last_price = df[df["Year"] == df["Year"].max()][column].mean()
+            trend = "Increase 📈" if predicted_price > last_price else "Decrease 📉"
 
-        st.subheader("✨ Prediction Result")
-        st.write(f"**Commodity:** {commodity}")
-        st.write(f"**Predicted Price for {year}:** ₹ {predicted_price:,.2f} ({unit})")
-        st.write(f"**Trend:** {trend}")
+            st.subheader("✨ Prediction Result")
+            st.write(f"**Commodity:** {commodity}")
+            st.write(f"**Predicted Price for {year}:** ₹ {predicted_price:,.2f} ({unit})")
+            st.write(f"**Trend:** {trend}")
 
-        st.subheader("📊 Price Trend Visualization")
-        hist = df.groupby("Year")[column].mean().reset_index()
-        hist.loc[len(hist)] = [year, predicted_price]
+            st.subheader("📊 Price Trend")
+            hist = df.groupby("Year")[column].mean().reset_index()
+            hist.loc[len(hist)] = [year, predicted_price]
 
-        plt.figure()
-        plt.plot(hist["Year"], hist[column], marker="o")
-        plt.xlabel("Year")
-        plt.ylabel(unit)
-        plt.title(f"{commodity} Price Trend")
-        st.pyplot(plt)
+            plt.figure()
+            plt.plot(hist["Year"], hist[column], marker="o")
+            plt.xlabel("Year")
+            plt.ylabel(unit)
+            plt.title(f"{commodity} Price Trend")
+            st.pyplot(plt)
 
-st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
