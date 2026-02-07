@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
     page_title="Commodity Price Prediction",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 # ---------------- BACKGROUND IMAGE FUNCTION ----------------
@@ -19,9 +20,7 @@ def set_bg_image(image_path):
         f"""
         <style>
         .stApp {{
-            background:
-                linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
-                url("data:image/jpg;base64,{encoded}");
+            background-image: url("data:image/jpg;base64,{encoded}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
@@ -31,27 +30,13 @@ def set_bg_image(image_path):
         unsafe_allow_html=True
     )
 
-# ---------------- DEFAULT BACKGROUND ----------------
+# ---------------- DEFAULT BACKGROUND (BEFORE SELECTION) ----------------
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #141E30, #243B55);
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
         background-attachment: fixed;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ---------------- HIDE STREAMLIT TOP SPACE ----------------
-st.markdown(
-    """
-    <style>
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
-    .block-container {
-        padding-top: 2rem;
     }
     </style>
     """,
@@ -69,41 +54,41 @@ commodity_map = {
     "Platinum": ("Platinum_INR_per_10g", "₹ per 10 grams", "images/platinum.jpg")
 }
 
-# ---------------- MAIN CARD STYLE ----------------
+# ---------------- CARD STYLE (MAIN FIX) ----------------
 st.markdown(
     """
     <style>
     .main-card {
-        background: rgba(255,255,255,0.96);
-        padding: 40px;
-        border-radius: 20px;
-        max-width: 650px;
-        margin: auto;
-        box-shadow: 0px 20px 40px rgba(0,0,0,0.4);
-        color: #111;
+        background: white;
+        padding: 35px;
+        border-radius: 18px;
+        max-width: 620px;
+        margin: 60px auto;
+        box-shadow: 0px 15px 35px rgba(0,0,0,0.35);
     }
 
-    h2, h3, label {
-        color: #111 !important;
+    .title {
+        text-align: center;
+        font-size: 30px;
         font-weight: 700;
+        margin-bottom: 5px;
     }
 
-    .stButton > button {
-        width: 100%;
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 12px;
+    .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 25px;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---------------- MAIN CARD START ----------------
+# ---------------- UI START ----------------
 st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
-st.markdown("## 📈 Commodity Price Prediction System")
-st.caption("India-based ML prediction using historical commodity prices")
+st.markdown('<div class="title">📈 Commodity Price Prediction System</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">India-based ML prediction using historical commodity prices</div>', unsafe_allow_html=True)
 
 commodity = st.selectbox(
     "Select Commodity",
@@ -117,12 +102,12 @@ year = st.number_input(
     step=1
 )
 
-# ---------------- BACKGROUND CHANGE ----------------
+# ---------------- CHANGE BACKGROUND AFTER SELECTION ----------------
 if commodity in commodity_map:
     set_bg_image(commodity_map[commodity][2])
 
 # ---------------- PREDICTION ----------------
-if st.button("🔮 Predict Price"):
+if st.button("🔮 Predict Price", use_container_width=True):
     if commodity not in commodity_map:
         st.warning("Please select a commodity")
     else:
@@ -143,18 +128,15 @@ if st.button("🔮 Predict Price"):
         st.write(f"**Predicted Price for {year}:** ₹ {predicted_price:,.2f} ({unit})")
         st.write(f"**Trend:** {trend}")
 
-        st.subheader("📊 Price Trend")
-
+        st.subheader("📊 Price Trend Visualization")
         hist = df.groupby("Year")[column].mean().reset_index()
         hist.loc[len(hist)] = [year, predicted_price]
 
-        plt.figure(figsize=(7,4))
+        plt.figure()
         plt.plot(hist["Year"], hist[column], marker="o")
         plt.xlabel("Year")
         plt.ylabel(unit)
         plt.title(f"{commodity} Price Trend")
-        plt.grid(True)
         st.pyplot(plt)
 
-# ---------------- MAIN CARD END ----------------
 st.markdown('</div>', unsafe_allow_html=True)
