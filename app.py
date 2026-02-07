@@ -31,13 +31,27 @@ def set_bg_image(image_path):
         unsafe_allow_html=True
     )
 
-# ---------------- DEFAULT THEME (BEFORE SELECTION) ----------------
+# ---------------- DEFAULT BACKGROUND ----------------
 st.markdown(
     """
     <style>
     .stApp {
         background: linear-gradient(135deg, #141E30, #243B55);
         background-attachment: fixed;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# ---------------- HIDE STREAMLIT TOP SPACE ----------------
+st.markdown(
+    """
+    <style>
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    .block-container {
+        padding-top: 2rem;
     }
     </style>
     """,
@@ -55,57 +69,41 @@ commodity_map = {
     "Platinum": ("Platinum_INR_per_10g", "₹ per 10 grams", "images/platinum.jpg")
 }
 
-# ---------------- UI STYLES ----------------
+# ---------------- MAIN CARD STYLE ----------------
 st.markdown(
     """
     <style>
-    .card {
-        background: #ffffff;
-        padding: 35px;
-        border-radius: 18px;
+    .main-card {
+        background: rgba(255,255,255,0.96);
+        padding: 40px;
+        border-radius: 20px;
         max-width: 650px;
         margin: auto;
-        box-shadow: 0px 15px 35px rgba(0,0,0,0.35);
-        color: #111111;
+        box-shadow: 0px 20px 40px rgba(0,0,0,0.4);
+        color: #111;
     }
 
-    h2, h3, label, p {
-        color: #111111 !important;
-        font-weight: 600;
+    h2, h3, label {
+        color: #111 !important;
+        font-weight: 700;
     }
 
     .stButton > button {
         width: 100%;
-        padding: 10px;
+        padding: 12px;
         font-size: 16px;
-        border-radius: 10px;
+        border-radius: 12px;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# ---------------- BANNER (FIXES EMPTY BOX ISSUE) ----------------
-st.markdown(
-    """
-    <div style="
-        background: rgba(255,255,255,0.95);
-        padding: 14px 22px;
-        border-radius: 14px;
-        text-align: center;
-        font-size: 16px;
-        font-weight: 600;
-        margin-bottom: 18px;">
-        🇮🇳 India-Based Commodity Price Prediction using Machine Learning
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# ---------------- UI CARD START ----------------
-st.markdown('<div class="card">', unsafe_allow_html=True)
+# ---------------- MAIN CARD START ----------------
+st.markdown('<div class="main-card">', unsafe_allow_html=True)
 
 st.markdown("## 📈 Commodity Price Prediction System")
+st.caption("India-based ML prediction using historical commodity prices")
 
 commodity = st.selectbox(
     "Select Commodity",
@@ -119,7 +117,7 @@ year = st.number_input(
     step=1
 )
 
-# ---------------- CHANGE BACKGROUND AFTER SELECTION ----------------
+# ---------------- BACKGROUND CHANGE ----------------
 if commodity in commodity_map:
     set_bg_image(commodity_map[commodity][2])
 
@@ -158,5 +156,5 @@ if st.button("🔮 Predict Price"):
         plt.grid(True)
         st.pyplot(plt)
 
-# ---------------- UI CARD END ----------------
+# ---------------- MAIN CARD END ----------------
 st.markdown('</div>', unsafe_allow_html=True)
