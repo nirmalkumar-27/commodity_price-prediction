@@ -1,103 +1,64 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
-import base64
 
-# ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Commodity Prediction", layout="wide")
+# Page config
+st.set_page_config(page_title="Commodity Price Prediction", layout="centered")
 
-# ---------------- BACKGROUND ----------------
-def set_bg(image=None):
-    if image:
-        with open(image, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-        st.markdown(f"""
-        <style>
-        .stApp {{
-            background-image: url("data:image/jpg;base64,{b64}");
-            background-size: cover;
-            background-position: center;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <style>
-        .stApp {
-            background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-        }
-        </style>
-        """, unsafe_allow_html=True)
+st.title("📈 Commodity Price Prediction System")
 
-set_bg()
-
-# ---------------- DATA ----------------
+# Load dataset
 df = pd.read_csv("commodity_prices_india_daily_2021_2026.csv")
 df["Date"] = pd.to_datetime(df["Date"])
 df["Year"] = df["Date"].dt.year
 
+# Commodity mapping
 commodity_map = {
-    "Gold": ("Gold_INR_per_10g", "₹ / 10g", "images/gold.jpg"),
-    "Silver": ("Silver_INR_per_1kg", "₹ / kg", "images/silver.jpg"),
-    "Platinum": ("Platinum_INR_per_10g", "₹ / 10g", "images/platinum.jpg")
+    "Gold": ("Gold_INR_per_10g", "₹ per 10 grams"),
+    "Silver": ("Silver_INR_per_1kg", "₹ per 1 kg"),
+    "Platinum": ("Platinum_INR_per_10g", "₹ per 10 grams")
 }
 
-# ---------------- CENTER CARD ----------------
-left, center, right = st.columns([1, 1.2, 1])
+# User inputs
+commodity = st.selectbox("Select Commodity", list(commodity_map.keys()))
+year = st.number_input("Enter Year to Predict", min_value=2026, max_value=2035, step=1)
 
-with center:
-    st.markdown("""
-    <style>
-    .card {
-        background: white;
-        padding: 35px;
-        border-radius: 18px;
-        box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+column, unit = commodity_map[commodity]
 
-    with st.container():
-        st.markdown('<div class="card">', unsafe_allow_html=True)
+# Train model
+X = df[["Year"]]
+y = df[column]
 
-        st.markdown("### 📈 Commodity Price Prediction System")
-        st.caption("India-based ML prediction using historical data")
+model = LinearRegression()
+model.fit(X, y)
 
-        commodity = st.selectbox(
-            "Select Commodity",
-            ["-- Select --", "Gold", "Silver", "Platinum"]
-        )
+# Prediction
+predicted_price = model.predict([[year]])[0]
 
-        year = st.number_input("Enter Year", min_value=2026, max_value=2035)
+# Previous year price for comparison
+prev_price = df[df["Year"] == df["Year"].max()][column].mean()
 
-        if commodity in commodity_map:
-            set_bg(commodity_map[commodity][2])
+trend = "Increase 📈" if predicted_price > prev_price else "Decrease 📉"
 
-        if st.button("🔮 Predict Price", use_container_width=True):
-            if commodity not in commodity_map:
-                st.warning("Please select a commodity")
-            else:
-                col, unit, _ = commodity_map[commodity]
+# Display output
+st.subheader("🔮 Prediction Result")
+st.write(f"**Commodity:** {commodity}")
+st.write(f"**Predicted Price for {year}:** ₹ {predicted_price:,.2f} ({unit})")
+st.write(f"**Trend:** {trend}")
 
-                X = df[["Year"]]
-                y = df[col]
+# Visualization
+st.subheader("📊 Price Trend Visualization")
 
-                model = LinearRegression()
-                model.fit(X, y)
+historical = df.groupby("Year")[column].mean().reset_index()
+future = pd.DataFrame({"Year": [year], column: [predicted_price]})
 
-                pred = model.predict([[year]])[0]
+plot_df = pd.concat([historical, future])
 
-                st.success(f"Predicted Price ({year}) : ₹ {pred:,.2f} {unit}")
-
-                hist = df.groupby("Year")[col].mean().reset_index()
-                hist.loc[len(hist)] = [year, pred]
-
-                fig, ax = plt.subplots()
-                ax.plot(hist["Year"], hist[col], marker="o")
-                ax.set_xlabel("Year")
-                ax.set_ylabel(unit)
-                ax.set_title(f"{commodity} Price Trend")
-                st.pyplot(fig)
-
-        st.markdown('</div>', unsafe_allow_html=True)
+plt.figure()
+plt.plot(plot_df["Year"], plot_df[column])
+plt.xlabel("Year")
+plt.ylabel(f"Price ({unit})")
+plt.title(f"{commodity} Price Trend")
+st.pyplot(plt)
